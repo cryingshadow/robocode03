@@ -13,6 +13,8 @@ public class JansBot extends AdvancedRobot {
     double heuristicFactor = 1.5;
     double heuristicDistance = 140;
 
+    boolean HAVE_FLEED_ONCE=false;
+
     @Override
     public void run() {
         setAdjustRadarForRobotTurn(true);//keep the radar still while we turn
@@ -30,6 +32,17 @@ public class JansBot extends AdvancedRobot {
                 setAhead( 20.0 );
                 execute();
             }
+
+            if( getEnergy() < 20.0 && !HAVE_FLEED_ONCE ) { //run for it!!!
+                HAVE_FLEED_ONCE = true;
+                turnRightRadians( Math.PI / 2.0 );
+                ahead( 50.0 );
+            }
+
+            if( getEnergy() > 20.0 ) {
+                HAVE_FLEED_ONCE = false;
+            }
+
         }
 
     }
