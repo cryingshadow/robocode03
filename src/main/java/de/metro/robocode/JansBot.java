@@ -10,7 +10,8 @@ public class JansBot extends AdvancedRobot {
     String currentFocussedEnemysName = "";
     double currentFocussedEnemysDistance = Double.POSITIVE_INFINITY;
 
-    double heuristicFactor = 1.0;
+    double heuristicFactor = 1.5;
+    double heuristicDistance = 140;
 
     @Override
     public void run() {
@@ -24,7 +25,11 @@ public class JansBot extends AdvancedRobot {
         turnRadarRightRadians(Double.POSITIVE_INFINITY);//keep turning radar right
 
         while(true) {
-
+            if( currentFocussedEnemysName == "" ) { //move if you have not enemy in focus
+                setTurnRightRadians( -Math.PI / 8.0 );
+                setAhead( 20.0 );
+                execute();
+            }
         }
 
     }
@@ -41,8 +46,9 @@ public class JansBot extends AdvancedRobot {
 
         currentFocussedEnemysDistance = e.getDistance( );
 
-
-
+        if ( Math.random( ) > .9 ) {
+            setMaxVelocity( ( 12 * Math.random( ) ) + 12 );//randomly change speed
+        }
 
         //find out where other robot is
         double absBearing = e.getBearingRadians( ) + getHeadingRadians( );//enemies absolute bearing
@@ -56,17 +62,18 @@ public class JansBot extends AdvancedRobot {
 
         //calculate radial velocity of enemy with respect to me
         double radialVelocity = (e.getVelocity( ) / e.getDistance()) / 2.0 / Math.PI * Math.sin( e.getHeadingRadians( ) - getHeadingRadians() - e.getBearingRadians() );
-        setTurnGunRightRadians( e.getBearingRadians()  - getGunHeadingRadians() + getHeadingRadians() + radialVelocity * heuristicFactor );
 
-        if( e.getDistance() < 150 ) { // better turn away
-            setTurnRightRadians( Math.PI / 2.0 + e.getBearingRadians() );
+        setTurnGunRightRadians( betweenMinusPiAndPi( e.getBearingRadians()  - getGunHeadingRadians() + getHeadingRadians() + radialVelocity * heuristicFactor ) );
+
+        if( e.getDistance() < heuristicDistance ) { // better turn away
+            setTurnRightRadians( betweenMinusPiAndPi( Math.PI / 2.0 + e.getBearingRadians() ) );
         }
         else { //rather move towards the enemy
-            setTurnRightRadians( e.getBearingRadians() + radialVelocity * heuristicFactor );
+            setTurnRightRadians( betweenMinusPiAndPi( e.getBearingRadians() + radialVelocity * heuristicFactor ) );
         }
 
 
-        setAhead( ( e.getDistance( ) - 140 ) * moveDirection );//move forward
+        setAhead( ( e.getDistance( ) - heuristicDistance + 10.0 ) );//move forward
 
         setFire(3);
 
@@ -92,12 +99,27 @@ public class JansBot extends AdvancedRobot {
         }
         */
     }
+    private double betweenMinusPiAndPi(double angle) {
+        return robocode.util.Utils.normalRelativeAngle(angle);
+    }
+
     public void onHitWall(HitWallEvent e){
         moveDirection=-moveDirection;//reverse direction upon hitting a wall
     }
 
+    public void onRobotDeath(RobotDeathEvent e) {
+        if( currentFocussedEnemysName == e.getName() ) {
+            currentFocussedEnemysName = "";
+            currentFocussedEnemysDistance = Double.POSITIVE_INFINITY;
+        }
+    }
+
     public void onHitByBullet(HitByBulletEvent e) {
-        turnLeft(90 - e.getBearing());
+
+        setTurnRightRadians( Math.PI / 2.0 + e.getBearingRadians() );
+        setAhead( 20.0 * moveDirection );
+        execute();
+
     }
 
 }
