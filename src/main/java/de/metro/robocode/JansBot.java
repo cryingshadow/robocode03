@@ -10,7 +10,7 @@ public class JansBot extends AdvancedRobot {
     String currentFocussedEnemysName = "";
     double currentFocussedEnemysDistance = Double.POSITIVE_INFINITY;
 
-    double heuristicFactor = 1.5;
+    double heuristicFactor = 4.0;
     double heuristicDistance = 140;
 
     boolean HAVE_FLEED_ONCE=false;
